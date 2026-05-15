@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { trains } from "../data/trains";
 import { BookingService } from "../services/BookingService";
 import WagonSelector from "../components/WagonSelector";
 import SeatMap from "../components/SeatMap";
+import BookingForm from "../components/BookingForm";
 
 export default function Booking() {
   const { trainId } = useParams();
@@ -18,7 +20,7 @@ export default function Booking() {
     if (selectedWagon) {
       const bSeats = BookingService.getBookedSeats(trainId, selectedWagon.id);
       setBookedSeats(bSeats);
-      setSelectedSeats([]);
+      setSelectedSeats([]); // скидаємо обрані місця при зміні вагону
     }
   }, [selectedWagon, trainId]);
 
@@ -30,6 +32,12 @@ export default function Booking() {
     } else {
       setSelectedSeats([...selectedSeats, seatNumber]);
     }
+  };
+
+  const handleBookingSubmit = (userData) => {
+    BookingService.saveBooking(trainId, selectedWagon.id, selectedSeats);
+    toast.success(`Квитки успішно заброньовано на ім'я ${userData.name}!`);
+    navigate("/");
   };
 
   return (
@@ -58,7 +66,10 @@ export default function Booking() {
         </div>
 
         <div className="form-section">
-          <p>Обрано місць: {selectedSeats.length}</p>
+          <BookingForm
+            onSubmit={handleBookingSubmit}
+            selectedCount={selectedSeats.length}
+          />
         </div>
       </div>
     </div>
